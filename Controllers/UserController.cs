@@ -12,75 +12,93 @@ namespace aspnet_server.Controllers {
     [Route("/api/users")]
     [EnableCors("ReactPolicy")]
     public class UserController : ControllerBase {
+        private AspNetServerContext context = new AspNetServerContext();
+
         /// <summary>
         /// Realiza o método GET todos os usuários
         /// </summary>
-        /// <returns>
-        /// No momento, uma lista de 5 usuários, todos com o mesmo nome e endereço
-        /// </returns>
+        /// <returns>Todos os usuários no banco de dados. Se não houver nenhum, retorna um array vazio</returns>
         [HttpGet]
         public IEnumerable<User> Get() {
-            return Enumerable.Range(1, 5).Select((index) => 
-                new User {
-                    Id = index,
-                    Username = "bátima",
-                    Name = new Name {
-                        FirstName = "Jão",
-                        LastName = "Gabriel"
-                    },
-                    Address = new Address {
-                        Street = "Mountain Drive",
-                        Number = 1007,
-                        City = "Gotham",
-                    },
-                    Phone = $"+{index} 91234-5678"
-                }
-            ).ToList();
+            try {
+                return context.Users.ToList();
+            } catch (Exception) {
+                return null;
+            }
         }
+        
 
         /// <summary>
         /// Realiza o método GET de apenas 1 usuário
         /// </summary>
         /// <param name="id">O ID do usuário escolhido</param>
-        /// <returns>
-        /// O usuário com o ID escolhido
-        /// </returns>
+        /// <returns>O usuário com o ID escolhido. Se não houver, retorna null</returns>
         [HttpGet("{id}")]
         public User Get(int id) {
-            return new User {
-                Id = id,
-                Username = "bátima",
-                Phone = $"+{id} 91234-5678",
-                Name = new Name {
-                    FirstName = "Jão",
-                    LastName = "Gabriel"
-                },
-                Address = new Address {
-                    City = "Gotham",
-                    Number = 1007,
-                    Street = "Moutain Drive"
-                }
-            };
+            try {
+                return context.Users.FirstOrDefault(user => user.Id == id);
+            } catch (Exception) {
+                return null;
+            }
         }
 
         /// <summary>
         /// Adiciona um usuário ao banco de dados
         /// </summary>
+        /// <param name="user">Usuário a ser adicionado</param>
+        /// <returns>
+        /// Retorna true se o usuário foi adicionado com sucesso. 
+        /// Se não foi, retorna false
+        /// </returns>
+        [HttpPost]
+        public bool Post([FromBody] User user) {
+            try {
+                if(user is null || user.Id != 0) throw new Exception();
+
+                context.Users.Add(user);
+                var num = context.SaveChanges();
+            } catch (Exception) {
+                return false;
+            }            
+            return true;
+        }
+
+        /// <summary>
+        /// Atualiza um usuário
+        /// </summary>
+        /// <param name="id"></param>
         /// <param name="user"></param>
         /// <returns></returns>
-        [HttpPost]
-        public string Post([FromBody] User user) {
-            return user is not null && user.Id == 0 ? "sucesso" : "não foi possível adicionar";
-        }
-
         [HttpPut("{id}")]
-        public string Put(int id, [FromBody] User user) {
-            return user is not null && user.Id == id ? "sucesso" : "não foi possível atualizar";
+        public bool Put(int id, [FromBody] User user) {
+            try {
+                if(user is null || user.Id != id || id == 0) throw new Exception();
+                
+                context.Users.Update(user);
+                var num = context.SaveChanges();
+            } catch(Exception) {
+                return false;
+            }
+            return true;
         }
 
+        /// <summary>
+        /// Remove um usuário
+        /// </summary>
+        /// <param name="id">ID do usuário a ser removido</param>
+        /// <returns></returns>
         [HttpDelete("{id}")]
-        public string Delete(int id) {
-            return id != 0 ? "sucesso" : "não foi possível deletar";
+        public bool Delete(int id) {
+            try {
+                if(id == 0) throw new Exception();
+
+                var user = context.Users.FirstOrDefault(user => user.Id == id);
+                context.Users.Remove(user);
+                context.SaveChanges();
+            } catch (Exception) {
+                return false;
+            }
+            return true;
         }
     }
 }
