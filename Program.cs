@@ -23,6 +23,10 @@ if (app.Environment.IsDevelopment()) {
     app.UseSwaggerUI();
 }
 
+using (var context = new aspnet_server.AspNetServerContext()) {
+    context.Database.EnsureCreated();
+}
+
 app.UseHttpsRedirection();
 app.UseCors("ReactPolicy");
 app.UseAuthorization();
