@@ -25,3 +25,14 @@ dotnet build                # Compiles the program
 
 dotnet watch run            # Runs the program and launches an API tester
 ```
+
+### Important commands and their flags
+- `dotnet-aspnet-codegenerator controller`: Generates a controller
+
+|Flag|Description|
+|--|--|
+|`-name`| Controller name |
+|`-api`| Specifies that will be an API with no views |
+|`-dc <dataContext>`| DataContext that will be used |
+|`-m <model>`| Model used to generate the controller |
+|`-outDir <directory>`| Directory the controller will be generated |
